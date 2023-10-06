@@ -14,3 +14,9 @@ Finally, a .csv file will be created and can be opened as a spreadsheet to consu
     pip install -r requirements.txt
 
     python3 main.py
+
+
+### observation:
+
+A version of Python that supports asynchronous modules is required.
+Tests performed with python3.11, but compatible with python 3.8 +
