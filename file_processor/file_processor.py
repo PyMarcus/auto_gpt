@@ -31,11 +31,14 @@ class FileProcessor:
         for index, filename in enumerate(os.listdir(self.directory)):
             if filename.endswith(".java"):
                 file_path = os.path.join(self.directory, filename)
+                smell = file_path.split("\\")
+                smell = smell[1].split('_')[0]
                 question = self.phrase + self.read_file_content(file_path)
                 if len(question) < 32000: # excel tem limite de char por celula :(
                     self.data.append({
                         "Quantidade": str(index).replace('\n', ''),
                         "Codigo": file_path.replace("\\", '/').replace(',', ' ').replace('\n', '').replace('_', '/'),
+                        "Badsmell": smell,
                         "Pergunta":  question.replace(',', ' ').replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', '').replace(' ', '') ,
                         "Resposta do Chat GPT": self.__gpt.ask(question).replace(',', ' ')
                     })
@@ -56,7 +59,7 @@ class FileProcessor:
             item['Pergunta'] = item['Pergunta'].replace('\n', ' ')
             item['Resposta do Chat GPT'] = item['Resposta do Chat GPT'].replace('\n', ' ')
         with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['Quantidade', 'Codigo', 'Pergunta', 'Resposta do Chat GPT']
+            fieldnames = ['Quantidade', 'Codigo', 'Badsmell', 'Pergunta', 'Resposta do Chat GPT']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.data)
@@ -75,6 +78,6 @@ if __name__ == "__main__":
                    "parameter count, can you point out anypotential concerns or " \
                    "anti-patterns or badsmell in the code below?"
 
-    processor = FileProcessor(directory_path, start_phrase)
+    processor = FileProcessor("", directory_path, start_phrase)
     processor.process_files()
     processor.save_to_csv(output_csv_file)

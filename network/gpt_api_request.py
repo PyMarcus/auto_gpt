@@ -14,7 +14,7 @@ class GPTApiRequest:
         try:
             openai.api_key = self.__TOKEN
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-instruct-0914",
+                model="gpt-3.5-turbo",
                 temperature=0.2,
                 max_tokens=1000,
                 messages=[
