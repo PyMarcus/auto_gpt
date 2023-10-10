@@ -26,4 +26,7 @@ class Parser:
             csvreader = csv.reader(lines, delimiter=';')
             next(csvreader)
             for row in csvreader:
-                self.__links.append(row[-2])
+                # filtro apenas os que não forem none
+                if row[4] != "none":
+                    self.__links.append(str(row[-2]) + "+" + str(row[3]) + "+" + str(row[0]) + "+" +
+                                       str(row[-4]) + "+" + str(row[-3]))

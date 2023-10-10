@@ -1,10 +1,10 @@
 import logging
 import os
 import csv
-import random
-import sys
-
+import re
 from network import GPTApiRequest
+from transformers import BertTokenizer
+
 
 
 class FileProcessor:
@@ -24,6 +24,15 @@ class FileProcessor:
         self.data = []
         self.__gpt = GPTApiRequest(token)
 
+    def count_tokens(self, question: str) -> int:
+        """
+        Verifica a quantidade de tokens na pergunta, na versão free, são cerca de 4k tokens.+-
+        """
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        tokens = tokenizer.tokenize(tokenizer.decode(tokenizer.encode(question)))
+        num_tokens = len(tokens)
+        return num_tokens
+
     def process_files(self):
         if not os.path.exists(self.directory):
             self.__log_error(f"Directory '{self.directory}' does not exist.")
@@ -31,17 +40,28 @@ class FileProcessor:
         for index, filename in enumerate(os.listdir(self.directory)):
             if filename.endswith(".java"):
                 file_path = os.path.join(self.directory, filename)
-                smell = file_path.split("\\")
-                smell = smell[1].split('_')[0]
+                file_split = file_path.split("_")
+                id_base = file_split[5]
+                smell = file_split[6]
+                url = "https://" + '/'.join(file_split[7:])
                 question = self.phrase + self.read_file_content(file_path)
-                if len(question) < 32000: # excel tem limite de char por celula :(
-                    self.data.append({
-                        "Quantidade": str(index).replace('\n', ''),
-                        "Codigo": file_path.replace("\\", '/').replace(',', ' ').replace('\n', '').replace('_', '/'),
-                        "Badsmell": smell,
-                        "Pergunta":  question.replace(',', ' ').replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', '').replace(' ', '') ,
-                        "Resposta do Chat GPT": self.__gpt.ask(question).replace(',', ' ')
-                    })
+                if self.count_tokens(question) > 4000:
+                    continue
+                gpt_response = self.__gpt.ask(question).replace(',', ' ')
+                gpt_response_parser = self.__gpt_response_parser(gpt_response)
+                self.data.append({
+                    "Index": str(index),
+                    "Index da base":id_base,
+                    "Codigo": url,
+                    "Badsmell da base": smell,
+                    "Pergunta":  question.strip().replace(',', '').replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
+                    "Resposta do Chat GPT": gpt_response.strip().replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
+                    "Identificou algum badsmell?": "Sim" if "YES" in gpt_response.split(" ")[0] else "Nao",
+                    "Badsmells identificados pelo GPT": gpt_response_parser.replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
+                })
+                #pprint(self.data)
+            if index == 0:
+                break
 
     def read_file_content(self, file_path):
         try:
@@ -54,12 +74,27 @@ class FileProcessor:
             self.__log_error(f"An error occurred while reading '{file_path}': {str(e)}")
             return ""
 
+    def __gpt_response_parser(self, response: str) -> str:
+        """
+        OBS: Nao alterei essa funcao para a pergunta atual, ja q testei e meu limite de
+        request havia acabado.
+        """
+        word = ""
+        for i, w in enumerate(response.split(".")):
+            if ":" in w:
+                if word != "":
+                    word += ', ' + w.split(":")[0]
+                else:
+                    word += w.split(":")[0]
+        return word.strip().replace(",", "-")
+
     def save_to_csv(self, output_file):
         for item in self.data:
             item['Pergunta'] = item['Pergunta'].replace('\n', ' ')
             item['Resposta do Chat GPT'] = item['Resposta do Chat GPT'].replace('\n', ' ')
         with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['Quantidade', 'Codigo', 'Badsmell', 'Pergunta', 'Resposta do Chat GPT']
+            fieldnames = ['Index', "Index da base", 'Codigo', 'Badsmell da base', 'Pergunta', 'Resposta do Chat GPT',
+                          "Identificou algum badsmell?", "Badsmells identificados pelo GPT"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.data)

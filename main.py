@@ -5,16 +5,20 @@ from network import Network
 
 if __name__ == '__main__':
     start = time.time()
-    network: Network = Network("data/MLCQCodeSmellSamples.csv")
-    print("[+]Downloading source codes from github...")
-    network.start()
-    TOKEN: str = ""  # token da open ai
+    """
+    # Executar primeiro para baixar os códigos da base para pasta downloaded
+    nw = Network("data/MLCQCodeSmellSamples.csv")
+    nw.start()
+    # feito isso, executar o codigo abaixo:
+    """
+
+    TOKEN: str = "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"  # token da open ai
     codes: str = "downloaded"  # quais codigos serao enviados ao gpt
-    question: str = "Im sharing some Java code and would appreciate your feedback." \
-                   " Given the principles of design patterns, method length, and " \
-                   "parameter count, can you point out anypotential concerns or " \
-                   "anti-patterns or badsmell in the code below?"
-    print("[+]Asking gpt questions...")
+    question: str = """I need to check if the code below contains code smells (aka bad smells). If there are any code 
+    smells, list which one are present. Please start your answer with "YES I found bad smells" when you find any bad 
+    smell. Otherwise, start your answer with "NO, I did not find any bad smell". When you start to answer the bad 
+    smell itself, always put in your answer "the bad smells are:" amongst the text your answer."""
+
     requests = FileProcessor(TOKEN, codes, question)
     requests.process_files()
     requests.save_to_csv("respostas_do_gpt.csv")

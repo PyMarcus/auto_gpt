@@ -1,4 +1,5 @@
 import asyncio
+import time
 import typing
 import openai
 
@@ -13,15 +14,15 @@ class GPTApiRequest:
     def __request(self, question: str) -> str:
         try:
             openai.api_key = self.__TOKEN
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                temperature=0.2,
-                max_tokens=1000,
-                messages=[
-                    {"role": "user", "content": question}
-                ]
+            response = openai.Completion.create(
+                model="gpt-3.5-turbo-instruct",
+                prompt=question,
+                max_tokens=1000
             )
-            return response
+            print(response)
+            time.sleep(21)  # necessario esperar 28s , do contrário, timeout.
+            print(f"[+] OK")
+            return response["choices"][0]["text"]
         except Exception as e:
             return f"Fail to connect: {e}"
 
@@ -30,5 +31,5 @@ class GPTApiRequest:
 
 
 if __name__ == '__main__':
-    gpt = GPTApiRequest("TOKEN")
+    gpt = GPTApiRequest("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")
     print(gpt.ask("what your name?"))
