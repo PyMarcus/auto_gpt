@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # feito isso, executar o codigo abaixo:
     """
 
-    TOKEN: str = "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"  # token da open ai
+    TOKEN: str = "token"  # token da open ai
     codes: str = "downloaded"  # quais codigos serao enviados ao gpt
     question: str = """I need to check if the code below contains code smells (aka bad smells). If there are any code 
     smells, list which one are present. Please start your answer with "YES I found bad smells" when you find any bad 
