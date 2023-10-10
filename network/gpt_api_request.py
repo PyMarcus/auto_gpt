@@ -31,5 +31,5 @@ class GPTApiRequest:
 
 
 if __name__ == '__main__':
-    gpt = GPTApiRequest("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")
+    gpt = GPTApiRequest("token")
     print(gpt.ask("what your name?"))
