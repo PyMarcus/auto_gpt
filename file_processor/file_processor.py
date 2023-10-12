@@ -77,8 +77,7 @@ class FileProcessor:
 
     def __gpt_response_parser(self, response: str) -> str:
         """
-        OBS: Nao alterei essa funcao para a pergunta atual, ja q testei e meu limite de
-        request havia acabado.
+        Esse parse é um pouco limitado, se o gpt atender às especificações, então, funciona corretamente.
         """
         pattern = r'\b([\w\s]+):'
         corresp = re.findall(pattern, response)
