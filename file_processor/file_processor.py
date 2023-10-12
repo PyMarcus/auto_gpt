@@ -33,7 +33,8 @@ class FileProcessor:
         num_tokens = len(tokens)
         return num_tokens
 
-    def process_files(self):
+    def process_files(self, total_lines: int) -> None:
+        """total_lines = quantidade de linhas a serem preenchidas na planilha"""
         if not os.path.exists(self.directory):
             self.__log_error(f"Directory '{self.directory}' does not exist.")
             return
@@ -56,11 +57,11 @@ class FileProcessor:
                     "Badsmell da base": smell,
                     "Pergunta":  question.strip().replace(',', '').replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
                     "Resposta do Chat GPT": gpt_response.strip().replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
-                    "Identificou algum badsmell?": "Sim" if "YES" in gpt_response.split(" ")[0] else "Nao",
+                    "Identificou algum badsmell?": "Sim" if "yes" in gpt_response.lower() else "Nao",
                     "Badsmells identificados pelo GPT": gpt_response_parser.replace('"""', '').replace('//', '').replace('\n', '').replace(';', '').replace('\t', ''),
                 })
                 #pprint(self.data)
-            if index == 0:
+            if index == total_lines:
                 break
 
     def read_file_content(self, file_path):
@@ -79,14 +80,9 @@ class FileProcessor:
         OBS: Nao alterei essa funcao para a pergunta atual, ja q testei e meu limite de
         request havia acabado.
         """
-        word = ""
-        for i, w in enumerate(response.split(".")):
-            if ":" in w:
-                if word != "":
-                    word += ', ' + w.split(":")[0]
-                else:
-                    word += w.split(":")[0]
-        return word.strip().replace(",", "-")
+        pattern = r'\b([\w\s]+):'
+        corresp = re.findall(pattern, response)
+        return ','.join(corresp[1:])
 
     def save_to_csv(self, output_file):
         for item in self.data:
