@@ -10,10 +10,32 @@ Finally, a .csv file will be created and can be opened as a spreadsheet to consu
 
 
 ### How to run:
+```bash
+python -m venv .venv
+```
 
-    pip install -r requirements.txt
+```bash
+source .venv/bin/activate
+```
 
-    python3 main.py
+
+```bash
+pip install -r requirements.txt
+```
+
+
+
+```bash
+python /data/run.py
+```
+
+```bash
+mkdir downloaded
+```
+
+```bash
+python main.py
+```
 
 
 ### observation:
